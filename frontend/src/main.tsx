@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 
-import './styles.css'
+import './index.css'
 import reportWebVitals from './reportWebVitals.ts'
 
 import App from './App.tsx'
