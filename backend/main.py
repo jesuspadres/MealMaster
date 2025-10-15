@@ -25,9 +25,10 @@ app.add_middleware(
 )
 
 # Import routers
-from app.api import recipes
+from app.api import recipes, auth
 
 # Include routers
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(recipes.router, prefix="/api/recipes", tags=["recipes"])
 
 @app.get("/")
