@@ -1,14 +1,14 @@
-import { useNavigate } from '@tanstack/react-router'
-import RecipeSearch from './components/RecipeSearch.tsx'
-import { useAuth } from './context/AuthContext.tsx'
+import { useNavigate } from 'react-router-dom'
+import RecipeSearch from '../components/RecipeSearch.tsx'
+import { useAuth } from '../context/AuthContext.tsx'
 
-function App() {
+export default function HomePage() {
   const { user, logout, isAuthenticated } = useAuth()
   const navigate = useNavigate()
 
   const handleLogout = () => {
     logout()
-    navigate({ to: '/auth' })
+    navigate('/auth')
   }
 
   return (
@@ -38,7 +38,7 @@ function App() {
               </>
             ) : (
               <button
-                onClick={() => navigate({ to: '/auth' })}
+                onClick={() => navigate('/auth')}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Login
@@ -62,5 +62,3 @@ function App() {
     </div>
   )
 }
-
-export default App

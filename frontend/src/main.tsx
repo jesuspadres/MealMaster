@@ -10,26 +10,35 @@ import {
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 
 import './index.css'
-import reportWebVitals from './reportWebVitals.ts'
-
+import { AuthProvider } from './context/AuthContext.tsx'
 import App from './App.tsx'
+import AuthPage from './pages/AuthPage.tsx'
 
+// Root route with AuthProvider
 const rootRoute = createRootRoute({
   component: () => (
-    <>
+    <AuthProvider>
       <Outlet />
       <TanStackRouterDevtools />
-    </>
+    </AuthProvider>
   ),
 })
 
+// Home route
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: App,
 })
 
-const routeTree = rootRoute.addChildren([indexRoute])
+// Auth route
+const authRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/auth',
+  component: AuthPage,
+})
+
+const routeTree = rootRoute.addChildren([indexRoute, authRoute])
 
 const router = createRouter({
   routeTree,
@@ -55,8 +64,3 @@ if (rootElement && !rootElement.innerHTML) {
     </StrictMode>,
   )
 }
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals()
