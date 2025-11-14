@@ -13,6 +13,7 @@ import './index.css'
 import { AuthProvider } from './context/AuthContext.tsx'
 import App from './App.tsx'
 import AuthPage from './pages/AuthPage.tsx'
+import SavedRecipesPage from './pages/SavedRecipesPage.tsx'
 
 // Root route with AuthProvider
 const rootRoute = createRootRoute({

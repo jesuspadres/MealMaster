@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react'
-import axios from 'axios'
+import { useAuth } from '../context/AuthContext.tsx'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -32,16 +32,22 @@ function RecipeSearch() {
     setError(null)
 
     try {
-      const response = await axios.get<SearchResponse>(`${API_URL}/api/recipes/search`, {
-        params: { query, number: 12 }
+      const response = await fetch(`${API_URL}/api/recipes/search?query=${encodeURIComponent(query)}&number=12`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+        // Explicitly NOT sending Authorization header
       })
-      setRecipes(response.data.results)
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.detail || 'Failed to search recipes. Please try again.')
-      } else {
-        setError('An unexpected error occurred.')
+
+      if (!response.ok) {
+        throw new Error(`Failed to search recipes: ${response.statusText}`)
       }
+
+      const data: SearchResponse = await response.json()
+      setRecipes(data.results)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to search recipes. Please try again.')
       console.error('Search error:', err)
     } finally {
       setLoading(false)

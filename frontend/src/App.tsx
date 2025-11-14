@@ -25,6 +25,12 @@ function App() {
           <div className="flex items-center gap-4">
             {isAuthenticated && user ? (
               <>
+                <button
+                  onClick={() => navigate({ to: '/saved-recipes' })}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  My Recipes
+                </button>
                 <div className="text-right">
                   <p className="text-sm font-medium text-gray-900">{user.name}</p>
                   <p className="text-xs text-gray-500">{user.email}</p>

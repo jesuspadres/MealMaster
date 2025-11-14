@@ -26,7 +26,7 @@ export default function AuthPage() {
       } else {
         await register(email, name, password)
       }
-      navigate('/')
+      navigate({ to: '/' })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
