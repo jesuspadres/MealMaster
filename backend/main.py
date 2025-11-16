@@ -25,7 +25,8 @@ app.add_middleware(
 )
 
 # Import routers
-from app.api import recipes, auth, saved_recipes
+from app.api import recipes, auth
+from app.api import saved_recipes
 
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])

@@ -22,6 +22,7 @@ function RecipeSearch() {
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
+  const { token, isAuthenticated } = useAuth()
 
   const searchRecipes = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -37,7 +38,6 @@ function RecipeSearch() {
         headers: {
           'Content-Type': 'application/json'
         }
-        // Explicitly NOT sending Authorization header
       })
 
       if (!response.ok) {
@@ -90,7 +90,7 @@ function RecipeSearch() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {recipes.map((recipe) => (
-              <RecipeCard key={recipe.id} recipe={recipe} />
+              <RecipeCard key={recipe.id} recipe={recipe} token={token} isAuthenticated={isAuthenticated} />
             ))}
           </div>
         </div>
@@ -107,9 +107,64 @@ function RecipeSearch() {
 
 interface RecipeCardProps {
   recipe: Recipe
+  token: string | null
+  isAuthenticated: boolean
 }
 
-function RecipeCard({ recipe }: RecipeCardProps) {
+function RecipeCard({ recipe, token, isAuthenticated }: RecipeCardProps) {
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const handleSave = async () => {
+    if (!isAuthenticated || !token) {
+      alert('Please login to save recipes')
+      return
+    }
+
+    console.log('Token:', token)
+    console.log('API URL:', API_URL)
+    console.log('Full URL:', `${API_URL}/api/saved-recipes/`)
+
+    setSaving(true)
+    try {
+      const response = await fetch(`${API_URL}/api/saved-recipes/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          external_id: recipe.id,
+          title: recipe.title,
+          image_url: recipe.image,
+          ready_in_minutes: recipe.readyInMinutes,
+          servings: recipe.servings
+        })
+      })
+
+      console.log('Response status:', response.status)
+      console.log('Response ok:', response.ok)
+      
+      const responseText = await response.text()
+      console.log('Response body:', responseText)
+
+      if (response.ok) {
+        setSaved(true)
+        alert('Recipe saved successfully!')
+      } else if (response.status === 400) {
+        alert('Recipe already saved')
+        setSaved(true)
+      } else {
+        throw new Error('Failed to save recipe')
+      }
+    } catch (error) {
+      console.error('Error saving recipe:', error)
+      alert('Failed to save recipe')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
       <img
@@ -121,7 +176,7 @@ function RecipeCard({ recipe }: RecipeCardProps) {
         <h3 className="font-semibold text-lg text-gray-900 mb-2 line-clamp-2">
           {recipe.title}
         </h3>
-        <div className="flex items-center gap-4 text-sm text-gray-600">
+        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
           {recipe.readyInMinutes && (
             <span className="flex items-center gap-1">
               ⏱️ {recipe.readyInMinutes} min
@@ -134,7 +189,7 @@ function RecipeCard({ recipe }: RecipeCardProps) {
           )}
         </div>
         {recipe.dishTypes && recipe.dishTypes.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mb-3 flex flex-wrap gap-2">
             {recipe.dishTypes.slice(0, 3).map((type, idx) => (
               <span
                 key={idx}
@@ -144,6 +199,19 @@ function RecipeCard({ recipe }: RecipeCardProps) {
               </span>
             ))}
           </div>
+        )}
+        {isAuthenticated && (
+          <button
+            onClick={handleSave}
+            disabled={saving || saved}
+            className={`w-full py-2 rounded-lg font-medium transition-colors ${
+              saved
+                ? 'bg-green-600 text-white cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400'
+            }`}
+          >
+            {saved ? '✓ Saved' : saving ? 'Saving...' : '+ Save Recipe'}
+          </button>
         )}
       </div>
     </div>

@@ -49,13 +49,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 def decode_token(token: str) -> dict:
     """Decode and verify a JWT token"""
     try:
-        print(f"DEBUG decode_token: Using SECRET_KEY: {SECRET_KEY[:20]}...")
-        print(f"DEBUG decode_token: Token to decode: {token[:50]}...")
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        print(f"DEBUG decode_token: Successfully decoded: {payload}")
         return payload
     except JWTError as e:
-        print(f"DEBUG decode_token: JWTError: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",

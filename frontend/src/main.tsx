@@ -39,7 +39,14 @@ const authRoute = createRoute({
   component: AuthPage,
 })
 
-const routeTree = rootRoute.addChildren([indexRoute, authRoute])
+// Saved recipes route
+const savedRecipesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/saved-recipes',
+  component: SavedRecipesPage,
+})
+
+const routeTree = rootRoute.addChildren([indexRoute, authRoute, savedRecipesRoute])
 
 const router = createRouter({
   routeTree,
