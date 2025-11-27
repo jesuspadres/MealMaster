@@ -33,7 +33,7 @@ export default function SavedRecipesPage() {
 
   const fetchSavedRecipes = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/saved-recipes/my-recipes`, {
+      const response = await fetch(`${API_URL}/api/saved-recipes/`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

@@ -57,26 +57,33 @@ function RecipeSearch() {
   return (
     <div>
       {/* Search Form */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-8 mb-8 border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">🔍 Search Recipes</h2>
         <form onSubmit={searchRecipes} className="flex gap-4">
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search for recipes (e.g., pasta, chicken, vegan)"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Try 'pasta carbonara' or 'vegan tacos'..."
+            className="flex-1 px-6 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
           />
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="px-8 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl hover:from-orange-600 hover:to-pink-600 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-semibold transform hover:-translate-y-0.5"
           >
-            {loading ? 'Searching...' : 'Search'}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <span className="animate-spin">⏳</span> Searching...
+              </span>
+            ) : (
+              'Search'
+            )}
           </button>
         </form>
 
         {error && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg text-red-700">
             {error}
           </div>
         )}
@@ -121,10 +128,6 @@ function RecipeCard({ recipe, token, isAuthenticated }: RecipeCardProps) {
       return
     }
 
-    console.log('Token:', token)
-    console.log('API URL:', API_URL)
-    console.log('Full URL:', `${API_URL}/api/saved-recipes/`)
-
     setSaving(true)
     try {
       const response = await fetch(`${API_URL}/api/saved-recipes/`, {
@@ -142,15 +145,9 @@ function RecipeCard({ recipe, token, isAuthenticated }: RecipeCardProps) {
         })
       })
 
-      console.log('Response status:', response.status)
-      console.log('Response ok:', response.ok)
-      
-      const responseText = await response.text()
-      console.log('Response body:', responseText)
-
       if (response.ok) {
         setSaved(true)
-        alert('Recipe saved successfully!')
+        setTimeout(() => setSaved(false), 3000) // Reset after 3 seconds
       } else if (response.status === 400) {
         alert('Recipe already saved')
         setSaved(true)
@@ -166,51 +163,75 @@ function RecipeCard({ recipe, token, isAuthenticated }: RecipeCardProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      <img
-        src={recipe.image}
-        alt={recipe.title}
-        className="w-full h-48 object-cover"
-      />
-      <div className="p-4">
-        <h3 className="font-semibold text-lg text-gray-900 mb-2 line-clamp-2">
+    <div className="group bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+      {/* Image */}
+      <div className="relative overflow-hidden h-56">
+        <img
+          src={recipe.image}
+          alt={recipe.title}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      </div>
+
+      {/* Content */}
+      <div className="p-5">
+        <h3 className="font-bold text-lg text-gray-900 mb-3 line-clamp-2 group-hover:text-orange-600 transition-colors">
           {recipe.title}
         </h3>
-        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+
+        {/* Meta Info */}
+        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
           {recipe.readyInMinutes && (
-            <span className="flex items-center gap-1">
-              ⏱️ {recipe.readyInMinutes} min
-            </span>
+            <div className="flex items-center gap-1.5 bg-orange-50 px-3 py-1 rounded-full">
+              <span>⏱️</span>
+              <span className="font-medium">{recipe.readyInMinutes} min</span>
+            </div>
           )}
           {recipe.servings && (
-            <span className="flex items-center gap-1">
-              🍽️ {recipe.servings} servings
-            </span>
+            <div className="flex items-center gap-1.5 bg-blue-50 px-3 py-1 rounded-full">
+              <span>🍽️</span>
+              <span className="font-medium">{recipe.servings} servings</span>
+            </div>
           )}
         </div>
+
+        {/* Tags */}
         {recipe.dishTypes && recipe.dishTypes.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2">
+          <div className="mb-4 flex flex-wrap gap-2">
             {recipe.dishTypes.slice(0, 3).map((type, idx) => (
               <span
                 key={idx}
-                className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
+                className="px-3 py-1 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 text-xs rounded-full font-medium"
               >
                 {type}
               </span>
             ))}
           </div>
         )}
+
+        {/* Save Button */}
         {isAuthenticated && (
           <button
             onClick={handleSave}
             disabled={saving || saved}
-            className={`w-full py-2 rounded-lg font-medium transition-colors ${
+            className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 transform hover:-translate-y-0.5 shadow-md hover:shadow-lg ${
               saved
-                ? 'bg-green-600 text-white cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400'
+                ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
+                : 'bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600 disabled:from-gray-400 disabled:to-gray-400'
             }`}
           >
-            {saved ? '✓ Saved' : saving ? 'Saving...' : '+ Save Recipe'}
+            {saved ? (
+              <span className="flex items-center justify-center gap-2">
+                ✓ Saved!
+              </span>
+            ) : saving ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="animate-spin">⏳</span> Saving...
+              </span>
+            ) : (
+              '+ Save Recipe'
+            )}
           </button>
         )}
       </div>

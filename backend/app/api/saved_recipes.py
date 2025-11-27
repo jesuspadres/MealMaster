@@ -74,7 +74,7 @@ async def save_recipe(
     
     return new_saved_recipe
 
-@router.get("/my-recipes", response_model=List[SavedRecipeResponse])
+@router.get("/", response_model=List[SavedRecipeResponse])
 async def get_saved_recipes(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

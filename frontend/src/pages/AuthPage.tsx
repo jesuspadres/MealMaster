@@ -35,19 +35,22 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center px-4">
-      <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600 flex items-center justify-center px-4 py-12">
+      <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md transform transition-all">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">🍳 MealMaster</h1>
-          <p className="text-gray-600 mt-2">
+          <div className="text-6xl mb-4">🍳</div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent mb-2">
+            MealMaster
+          </h1>
+          <p className="text-gray-600">
             {mode === 'login' ? 'Welcome back!' : 'Join us today!'}
           </p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg text-red-700 text-sm animate-shake">
             {error}
           </div>
         )}
@@ -105,9 +108,16 @@ export default function AuthPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+            className="w-full py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl hover:from-orange-600 hover:to-pink-600 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
-            {loading ? 'Loading...' : mode === 'login' ? 'Login' : 'Register'}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="animate-spin">⏳</span>
+                {mode === 'login' ? 'Logging in...' : 'Creating account...'}
+              </span>
+            ) : (
+              mode === 'login' ? 'Login' : 'Create Account'
+            )}
           </button>
         </form>
 

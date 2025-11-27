@@ -14,6 +14,7 @@ import { AuthProvider } from './context/AuthContext.tsx'
 import App from './App.tsx'
 import AuthPage from './pages/AuthPage.tsx'
 import SavedRecipesPage from './pages/SavedRecipesPage.tsx'
+import MealPlannerPage from './pages/MealPlannerPage.tsx'
 
 // Root route with AuthProvider
 const rootRoute = createRootRoute({
@@ -46,7 +47,14 @@ const savedRecipesRoute = createRoute({
   component: SavedRecipesPage,
 })
 
-const routeTree = rootRoute.addChildren([indexRoute, authRoute, savedRecipesRoute])
+// Meal planner route
+const mealPlannerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/meal-planner',
+  component: MealPlannerPage,
+})
+
+const routeTree = rootRoute.addChildren([indexRoute, authRoute, savedRecipesRoute, mealPlannerRoute])
 
 const router = createRouter({
   routeTree,
