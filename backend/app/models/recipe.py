@@ -19,6 +19,7 @@ class SavedRecipe(Base):
     instructions = Column(JSON)  # Store as JSON
     nutrition = Column(JSON)  # Store as JSON
     is_favorite = Column(Boolean, default=False)
+    is_hidden = Column(Boolean, default=False)  # Soft delete flag
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationship

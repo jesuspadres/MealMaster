@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from '@tanstack/react-router'
 import { useAuth } from '../context/AuthContext.tsx'
 
@@ -14,13 +15,33 @@ interface SavedRecipe {
   is_favorite: boolean
 }
 
+interface Toast {
+  id: number
+  message: string
+  type: 'success' | 'error' | 'warning'
+}
+
 export default function SavedRecipesPage() {
   const [recipes, setRecipes] = useState<SavedRecipe[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [filter, setFilter] = useState<'all' | 'favorites'>('all')
+  const [toasts, setToasts] = useState<Toast[]>([])
   
   const { token, isAuthenticated } = useAuth()
   const navigate = useNavigate()
+
+  const showToast = (message: string, type: Toast['type'] = 'error') => {
+    const id = Date.now()
+    setToasts(prev => [...prev, { id, message, type }])
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id))
+    }, 4000)
+  }
+
+  const removeToast = (id: number) => {
+    setToasts(prev => prev.filter(t => t.id !== id))
+  }
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -52,9 +73,7 @@ export default function SavedRecipesPage() {
     }
   }
 
-  const handleDelete = async (recipeId: number) => {
-    if (!confirm('Are you sure you want to remove this recipe?')) return
-
+  const handleDelete = async (recipeId: number, recipeTitle: string) => {
     try {
       const response = await fetch(`${API_URL}/api/saved-recipes/${recipeId}`, {
         method: 'DELETE',
@@ -64,17 +83,19 @@ export default function SavedRecipesPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to delete recipe')
+        const errorData = await response.json().catch(() => null)
+        const errorMessage = errorData?.detail || 'Failed to delete recipe'
+        throw new Error(errorMessage)
       }
 
-      setRecipes(recipes.filter(r => r.id !== recipeId))
-      alert('Recipe removed successfully!')
+      setRecipes(prev => prev.filter(r => r.id !== recipeId))
+      showToast(`"${recipeTitle}" removed`, 'success')
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete recipe')
+      showToast(err instanceof Error ? err.message : 'Failed to delete recipe', 'error')
     }
   }
 
-  const handleToggleFavorite = async (recipeId: number) => {
+  const handleToggleFavorite = async (recipeId: number, recipeTitle: string) => {
     try {
       const response = await fetch(`${API_URL}/api/saved-recipes/${recipeId}/favorite`, {
         method: 'POST',
@@ -88,92 +109,277 @@ export default function SavedRecipesPage() {
       }
 
       const updatedRecipe = await response.json()
-      setRecipes(recipes.map(r => r.id === recipeId ? updatedRecipe : r))
+      setRecipes(prev => prev.map(r => r.id === recipeId ? updatedRecipe : r))
+      showToast(
+        updatedRecipe.is_favorite 
+          ? `"${recipeTitle}" added to favorites` 
+          : `"${recipeTitle}" removed from favorites`,
+        'success'
+      )
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to update favorite')
+      showToast(err instanceof Error ? err.message : 'Failed to update favorite', 'error')
     }
   }
 
+  const filteredRecipes = filter === 'favorites' 
+    ? recipes.filter(r => r.is_favorite) 
+    : recipes
+
+  // Alternate rotations and accents for broken grid effect
+  const rotations = ['rotate-1', 'rotate-neg-1', 'rotate-2', 'rotate-neg-2', '', 'rotate-neg-1']
+  const accents = ['#FFE500', '#00D4FF', '#FF3366', '#00FF88', '#FFE500', '#00D4FF']
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-xl text-gray-600">Loading your recipes...</div>
+      <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center">
+        <div className="card-brutal p-8 bg-[#FFE500] rotate-2">
+          <div className="font-display text-4xl">LOADING...</div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">My Saved Recipes</h1>
-        <p className="text-gray-600 mt-2">
-          {recipes.length} {recipes.length === 1 ? 'recipe' : 'recipes'} saved
-        </p>
+    <div className="min-h-screen bg-[#F5F0E8] relative noise-overlay">
+      {/* Header */}
+      <header className="bg-black text-white border-b-4 border-black">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex items-center gap-4">
+              <div className="bg-[#FF3366] text-white px-4 py-2 border-brutal rotate-neg-2">
+                <span className="font-display text-2xl md:text-4xl tracking-wider">❤️ SAVED</span>
+              </div>
+              <div className="bg-[#FFE500] text-black px-4 py-2 border-brutal rotate-1">
+                <span className="font-display text-2xl md:text-4xl tracking-wider">RECIPES</span>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate({ to: '/' })}
+              className="btn-brutal px-6 py-3 bg-white text-black"
+            >
+              ← BACK TO SEARCH
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Stats Bar */}
+      <div className="bg-[#00D4FF] border-b-4 border-black py-4">
+        <div className="max-w-7xl mx-auto px-4 flex flex-wrap gap-4 items-center justify-between">
+          <div className="flex gap-4">
+            <div className="bg-black text-white px-4 py-2 uppercase font-bold text-sm md:text-base">
+              Total: {recipes.length}
+            </div>
+            <div className="bg-black text-[#FFE500] px-4 py-2 uppercase font-bold text-sm md:text-base">
+              Favorites: {recipes.filter(r => r.is_favorite).length}
+            </div>
+          </div>
+          
+          {/* Filter Toggle */}
+          <div className="flex border-brutal overflow-hidden">
+            <button
+              onClick={() => setFilter('all')}
+              className={`px-4 py-2 font-bold uppercase transition-colors text-sm md:text-base ${
+                filter === 'all' ? 'bg-black text-white' : 'bg-white text-black'
+              }`}
+            >
+              ALL
+            </button>
+            <button
+              onClick={() => setFilter('favorites')}
+              className={`px-4 py-2 font-bold uppercase transition-colors border-l-4 border-black text-sm md:text-base ${
+                filter === 'favorites' ? 'bg-black text-white' : 'bg-white text-black'
+              }`}
+            >
+              ★ FAVORITES
+            </button>
+          </div>
+        </div>
       </div>
 
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          {error}
-        </div>
-      )}
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        {error && (
+          <div className="mb-6 p-4 bg-[#FF3366] text-white border-brutal uppercase">
+            ⚠ {error}
+          </div>
+        )}
 
-      {recipes.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow">
-          <p className="text-xl text-gray-600 mb-4">No saved recipes yet!</p>
-          <button
-            onClick={() => navigate({ to: '/' })}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Search for Recipes
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recipes.map((recipe) => (
-            <div key={recipe.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-              {recipe.image_url && (
-                <img
-                  src={recipe.image_url}
-                  alt={recipe.title}
-                  className="w-full h-48 object-cover"
-                />
-              )}
-              <div className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold text-lg text-gray-900 flex-1">
-                    {recipe.title}
-                  </h3>
-                  <button
-                    onClick={() => handleToggleFavorite(recipe.id)}
-                    className="text-2xl ml-2"
-                  >
-                    {recipe.is_favorite ? '⭐' : '☆'}
-                  </button>
-                </div>
+        {filteredRecipes.length === 0 ? (
+          <div className="card-brutal p-8 md:p-12 bg-white text-center rotate-1">
+            <div className="font-display text-3xl md:text-5xl mb-4">
+              {filter === 'favorites' ? 'NO FAVORITES YET' : 'NO SAVED RECIPES'}
+            </div>
+            <p className="uppercase text-gray-600 mb-6">
+              {filter === 'favorites' 
+                ? 'Star some recipes to see them here!' 
+                : 'Search and save some delicious recipes!'}
+            </p>
+            <button
+              onClick={() => navigate({ to: '/' })}
+              className="btn-brutal px-8 py-4 bg-[#00FF88] text-black font-display text-lg md:text-xl"
+            >
+              FIND RECIPES →
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Results Header */}
+            <div className="flex flex-wrap items-center gap-4 mb-6 md:mb-8">
+              <div className="bg-black text-white px-4 py-2 font-display text-xl md:text-2xl rotate-1">
+                {filteredRecipes.length} {filter === 'favorites' ? 'FAVORITES' : 'RECIPES'}
+              </div>
+              <div className="flex-1 h-1 bg-black hidden sm:block"></div>
+            </div>
+
+            {/* Responsive Grid - Matches RecipeSearch */}
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '1.5rem'
+            }}>
+              {filteredRecipes.map((recipe, index) => {
+                const rotation = rotations[index % rotations.length]
+                const accent = accents[index % accents.length]
                 
-                <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                  {recipe.ready_in_minutes && (
-                    <span className="flex items-center gap-1">
-                      ⏱️ {recipe.ready_in_minutes} min
-                    </span>
-                  )}
-                  {recipe.servings && (
-                    <span className="flex items-center gap-1">
-                      🍽️ {recipe.servings} servings
-                    </span>
-                  )}
-                </div>
+                return (
+                  <div 
+                    key={recipe.id} 
+                    className={`bg-white overflow-hidden ${rotation} animate-slideUp flex flex-col border-4 border-black transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02]`}
+                    style={{ 
+                      animationDelay: `${index * 0.03}s`,
+                      boxShadow: '8px 8px 0px #000',
+                      maxWidth: '100%'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = '12px 12px 0px #000'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = '8px 8px 0px #000'
+                    }}
+                  >
+                    {/* Image */}
+                    {recipe.image_url && (
+                      <div className="relative overflow-hidden border-b-4 border-black" style={{ aspectRatio: '4/3' }}>
+                        <img
+                          src={recipe.image_url}
+                          alt={recipe.title}
+                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                          style={{ display: 'block' }}
+                        />
+                        {/* Index Badge */}
+                        <div 
+                          className="absolute top-2 right-2 px-2 py-0.5 font-display text-sm md:text-base"
+                          style={{ backgroundColor: accent }}
+                        >
+                          #{index + 1}
+                        </div>
+                        {/* Favorite Badge */}
+                        {recipe.is_favorite && (
+                          <div className="absolute top-2 left-2 bg-[#FFE500] text-black px-2 py-0.5 font-bold text-xs uppercase border-2 border-black">
+                            ★ FAV
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Content */}
+                    <div className="p-3 md:p-4 flex flex-col flex-1">
+                      <h3 className="font-bold text-sm md:text-base uppercase mb-2 md:mb-3 line-clamp-2 leading-tight flex-shrink-0">
+                        {recipe.title}
+                      </h3>
+                      
+                      {/* Meta Info */}
+                      <div className="flex flex-wrap gap-1.5 md:gap-2 mb-3 flex-shrink-0">
+                        {recipe.ready_in_minutes && (
+                          <div className="bg-black text-white px-2 py-0.5 text-xs uppercase">
+                            ⏱ {recipe.ready_in_minutes}MIN
+                          </div>
+                        )}
+                        {recipe.servings && (
+                          <div className="bg-black text-white px-2 py-0.5 text-xs uppercase">
+                            🍽 {recipe.servings}PPL
+                          </div>
+                        )}
+                      </div>
 
-                <button
-                  onClick={() => handleDelete(recipe.id)}
-                  className="w-full py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-                >
-                  🗑️ Remove
-                </button>
+                      {/* Spacer to push buttons to bottom */}
+                      <div className="flex-1"></div>
+
+                      {/* Actions */}
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => handleToggleFavorite(recipe.id, recipe.title)}
+                          className={`btn-brutal flex-1 py-2 md:py-3 uppercase font-bold text-xs md:text-sm transition-all duration-150 ${
+                            recipe.is_favorite 
+                              ? 'bg-[#FFE500] text-black' 
+                              : 'bg-white text-black hover:bg-[#FFE500]'
+                          }`}
+                        >
+                          {recipe.is_favorite ? '★ FAVORITED' : '☆ FAVORITE'}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(recipe.id, recipe.title)}
+                          className="btn-brutal px-3 md:px-4 py-2 md:py-3 bg-[#FF3366] text-white hover:bg-red-700 transition-colors"
+                        >
+                          🗑
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </>
+        )}
+      </main>
+
+      {/* Toast Notifications - Portaled to body */}
+      {toasts.length > 0 && createPortal(
+        <div 
+          style={{ 
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            zIndex: 99999,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px'
+          }}
+        >
+          {toasts.map((toast) => (
+            <div
+              key={toast.id}
+              onClick={() => removeToast(toast.id)}
+              style={{ 
+                border: '4px solid #000',
+                padding: '16px 24px',
+                minWidth: '300px',
+                maxWidth: '400px',
+                cursor: 'pointer',
+                textTransform: 'uppercase',
+                fontWeight: 'bold',
+                fontSize: '14px',
+                fontFamily: 'Space Mono, monospace',
+                boxShadow: '6px 6px 0px #000',
+                animation: 'slideUp 0.3s ease-out',
+                backgroundColor: toast.type === 'success' ? '#00FF88' : toast.type === 'error' ? '#FF3366' : '#FFE500',
+                color: toast.type === 'error' ? 'white' : 'black'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                <span>
+                  {toast.type === 'success' && '✓ '}
+                  {toast.type === 'error' && '✗ '}
+                  {toast.type === 'warning' && '⚠ '}
+                  {toast.message}
+                </span>
+                <span style={{ fontSize: '18px' }}>×</span>
               </div>
             </div>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

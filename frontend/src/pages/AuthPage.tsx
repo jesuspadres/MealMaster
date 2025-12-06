@@ -35,109 +35,181 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600 flex items-center justify-center px-4 py-12">
-      <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md transform transition-all">
+    <div className="min-h-screen bg-[#F5F0E8] relative noise-overlay flex items-center justify-center px-4 py-12">
+      {/* Background decorative elements */}
+      <div className="absolute top-20 left-10 bg-[#FFE500] w-32 h-32 border-brutal rotate-12 hidden lg:block"></div>
+      <div className="absolute bottom-20 right-10 bg-[#00D4FF] w-24 h-24 border-brutal rotate-neg-12 hidden lg:block"></div>
+      <div className="absolute top-40 right-20 bg-[#FF3366] w-16 h-16 border-brutal rotate-6 hidden lg:block"></div>
+      <div className="absolute bottom-40 left-20 bg-[#00FF88] w-20 h-20 border-brutal rotate-neg-6 hidden lg:block"></div>
+
+      <div className="w-full max-w-md relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="text-6xl mb-4">🍳</div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent mb-2">
-            MealMaster
-          </h1>
-          <p className="text-gray-600">
-            {mode === 'login' ? 'Welcome back!' : 'Join us today!'}
-          </p>
+          <div 
+            className="inline-block bg-black text-[#FFE500] px-6 py-4 border-brutal rotate-neg-2 mb-4 cursor-pointer"
+            onClick={() => navigate({ to: '/' })}
+          >
+            <span className="font-display text-5xl tracking-wider">🍳 MEALMASTER</span>
+          </div>
+          <div className="inline-block bg-[#FF3366] text-white px-4 py-2 border-brutal rotate-1">
+            <span className="font-display text-2xl tracking-wider">
+              {mode === 'login' ? 'WELCOME BACK' : 'JOIN THE CLUB'}
+            </span>
+          </div>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg text-red-700 text-sm animate-shake">
-            {error}
+        {/* Form Card */}
+        <div className="card-brutal p-8 bg-white rotate-1">
+          {/* Mode Toggle */}
+          <div className="flex mb-6 border-brutal overflow-hidden">
+            <button
+              type="button"
+              onClick={() => {
+                setMode('login')
+                setError('')
+              }}
+              className={`flex-1 py-3 font-bold uppercase transition-colors ${
+                mode === 'login' 
+                  ? 'bg-black text-white' 
+                  : 'bg-white text-black hover:bg-gray-100'
+              }`}
+            >
+              LOGIN
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode('register')
+                setError('')
+              }}
+              className={`flex-1 py-3 font-bold uppercase transition-colors border-l-4 border-black ${
+                mode === 'register' 
+                  ? 'bg-black text-white' 
+                  : 'bg-white text-black hover:bg-gray-100'
+              }`}
+            >
+              REGISTER
+            </button>
           </div>
-        )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="your@email.com"
-            />
-          </div>
-
-          {/* Name (Register only) */}
-          {mode === 'register' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Full Name
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="John Doe"
-              />
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-[#FF3366] text-white border-brutal uppercase text-sm glitch">
+              ⚠ {error}
             </div>
           )}
 
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="••••••••"
-            />
-          </div>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-bold uppercase mb-2 tracking-wider">
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="input-brutal w-full px-4 py-3 uppercase placeholder:text-gray-400"
+                placeholder="YOUR@EMAIL.COM"
+              />
+            </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl hover:from-orange-600 hover:to-pink-600 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="animate-spin">⏳</span>
-                {mode === 'login' ? 'Logging in...' : 'Creating account...'}
-              </span>
-            ) : (
-              mode === 'login' ? 'Login' : 'Create Account'
+            {/* Name (Register only) */}
+            {mode === 'register' && (
+              <div className="animate-slideUp">
+                <label className="block text-sm font-bold uppercase mb-2 tracking-wider">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  className="input-brutal w-full px-4 py-3 uppercase placeholder:text-gray-400"
+                  placeholder="JOHN DOE"
+                />
+              </div>
             )}
-          </button>
-        </form>
 
-        {/* Toggle Mode */}
-        <div className="mt-6 text-center">
-          <p className="text-gray-600 text-sm">
-            {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-bold uppercase mb-2 tracking-wider">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="input-brutal w-full px-4 py-3 uppercase placeholder:text-gray-400"
+                placeholder="••••••••"
+              />
+            </div>
+
+            {/* Submit Button */}
             <button
-              onClick={() => {
-                setMode(mode === 'login' ? 'register' : 'login')
-                setError('')
-                setEmail('')
-                setName('')
-                setPassword('')
-              }}
-              className="text-blue-600 hover:underline font-medium ml-1"
+              type="submit"
+              disabled={loading}
+              className="btn-brutal w-full py-4 bg-[#00FF88] text-black font-display text-2xl tracking-wider disabled:bg-gray-300 disabled:cursor-not-allowed mt-6"
             >
-              {mode === 'login' ? 'Register' : 'Login'}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  ◐ {mode === 'login' ? 'LOGGING IN...' : 'CREATING...'}
+                </span>
+              ) : (
+                mode === 'login' ? 'ENTER →' : 'CREATE ACCOUNT →'
+              )}
             </button>
-          </p>
+          </form>
+
+          {/* Footer text */}
+          <div className="mt-6 text-center text-sm uppercase text-gray-600">
+            {mode === 'login' ? (
+              <p>
+                New here?{' '}
+                <button
+                  onClick={() => {
+                    setMode('register')
+                    setError('')
+                    setEmail('')
+                    setName('')
+                    setPassword('')
+                  }}
+                  className="font-bold text-black underline hover:text-[#FF3366]"
+                >
+                  Create account
+                </button>
+              </p>
+            ) : (
+              <p>
+                Already have an account?{' '}
+                <button
+                  onClick={() => {
+                    setMode('login')
+                    setError('')
+                    setEmail('')
+                    setName('')
+                    setPassword('')
+                  }}
+                  className="font-bold text-black underline hover:text-[#FF3366]"
+                >
+                  Login
+                </button>
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Back to home */}
+        <div className="text-center mt-6">
+          <button
+            onClick={() => navigate({ to: '/' })}
+            className="btn-brutal px-6 py-2 bg-black text-white"
+          >
+            ← BACK TO HOME
+          </button>
         </div>
       </div>
     </div>

@@ -20,8 +20,21 @@ interface MealPlan {
   recipe_image: string
 }
 
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
+const DAYS_FULL = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack']
+const MEAL_ICONS: Record<string, string> = {
+  breakfast: '🌅',
+  lunch: '☀️',
+  dinner: '🌙',
+  snack: '🍿'
+}
+const MEAL_COLORS: Record<string, string> = {
+  breakfast: '#FFE500',
+  lunch: '#00D4FF',
+  dinner: '#FF3366',
+  snack: '#00FF88'
+}
 
 export default function MealPlannerPage() {
   const [mealPlans, setMealPlans] = useState<MealPlan[]>([])
@@ -84,23 +97,18 @@ export default function MealPlannerPage() {
   }
 
   const fetchSavedRecipes = async () => {
-  console.log('Fetching saved recipes...')
-  try {
-    const response = await fetch(`${API_URL}/api/saved-recipes/`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-    console.log('Response status:', response.status)
-    if (response.ok) {
-      const data = await response.json()
-      console.log('Saved recipes:', data)
-      setSavedRecipes(data)
-    } else {
-      console.log('Failed to fetch recipes')
+    try {
+      const response = await fetch(`${API_URL}/api/saved-recipes/`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setSavedRecipes(data)
+      }
+    } catch (error) {
+      console.error('Error fetching saved recipes:', error)
     }
-  } catch (error) {
-    console.error('Error fetching saved recipes:', error)
   }
-}
 
   const addMealPlan = async (recipeId: number, date: string, mealType: string) => {
     try {
@@ -149,131 +157,234 @@ export default function MealPlannerPage() {
 
   const weekDates = getWeekDates()
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center">
+        <div className="card-brutal p-8 bg-[#00D4FF] rotate-neg-2">
+          <div className="font-display text-4xl">LOADING PLANNER...</div>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
+    <div className="min-h-screen bg-[#F5F0E8] relative noise-overlay">
+      {/* Header */}
+      <header className="bg-black text-white border-b-4 border-black">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold">📅 Meal Planner</h1>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex items-center gap-4">
+              <div className="bg-[#00D4FF] text-black px-4 py-2 border-brutal rotate-neg-2">
+                <span className="font-display text-4xl tracking-wider">📅 MEAL</span>
+              </div>
+              <div className="bg-[#FFE500] text-black px-4 py-2 border-brutal rotate-1">
+                <span className="font-display text-4xl tracking-wider">PLANNER</span>
+              </div>
+            </div>
             <button
               onClick={() => navigate({ to: '/' })}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="btn-brutal px-6 py-3 bg-white text-black"
             >
-              ← Back
+              ← BACK TO SEARCH
             </button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex justify-between items-center mb-6">
+      {/* Week Navigation */}
+      <div className="bg-[#FFE500] border-b-4 border-black py-4">
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
           <button
             onClick={() => {
               const newDate = new Date(currentWeekStart)
               newDate.setDate(newDate.getDate() - 7)
               setCurrentWeekStart(newDate)
             }}
-            className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+            className="btn-brutal px-6 py-3 bg-black text-white"
           >
-            ← Previous
+            ← PREV WEEK
           </button>
-          <h2 className="text-xl font-semibold">
-            {weekDates[0].toLocaleDateString()} - {weekDates[6].toLocaleDateString()}
-          </h2>
+          
+          <div className="bg-black text-white px-6 py-3 font-display text-xl tracking-wider">
+            {weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} 
+            {' → '}
+            {weekDates[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          </div>
+          
           <button
             onClick={() => {
               const newDate = new Date(currentWeekStart)
               newDate.setDate(newDate.getDate() + 7)
               setCurrentWeekStart(newDate)
             }}
-            className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+            className="btn-brutal px-6 py-3 bg-black text-white"
           >
-            Next →
+            NEXT WEEK →
           </button>
-        </div>
-
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border p-2 w-32">Meal</th>
-                {weekDates.map((date, idx) => (
-                  <th key={idx} className="border p-2">
-                    <div className="font-semibold">{DAYS[idx]}</div>
-                    <div className="text-xs text-gray-600">
-                      {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {MEAL_TYPES.map(mealType => (
-                <tr key={mealType}>
-                  <td className="border p-2 bg-gray-50 font-medium capitalize">{mealType}</td>
-                  {weekDates.map((date, idx) => {
-                    const meal = getMealForSlot(date, mealType)
-                    const dateStr = formatDate(date)
-                    
-                    return (
-                      <td key={idx} className="border p-2 h-32 align-top">
-                        {meal ? (
-                          <div className="relative group">
-                            <div className="text-sm font-medium mb-1">{meal.recipe_title}</div>
-                            <button
-                              onClick={() => deleteMealPlan(meal.id)}
-                              className="absolute top-0 right-0 text-red-600 hover:text-red-800 opacity-0 group-hover:opacity-100"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setShowRecipeSelector({ date: dateStr, mealType })}
-                            className="w-full h-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
-                          >
-                            + Add
-                          </button>
-                        )}
-                      </td>
-                    )
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </div>
 
+      {/* Calendar Grid */}
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="overflow-x-auto">
+          <div className="min-w-[900px]">
+            {/* Day Headers */}
+            <div className="grid grid-cols-8 gap-2 mb-4">
+              <div className="bg-black text-white p-4 border-brutal font-display text-xl text-center">
+                MEAL
+              </div>
+              {weekDates.map((date, idx) => {
+                const isToday = formatDate(date) === formatDate(new Date())
+                return (
+                  <div 
+                    key={idx} 
+                    className={`p-4 border-brutal text-center ${
+                      isToday ? 'bg-[#FF3366] text-white' : 'bg-white'
+                    }`}
+                  >
+                    <div className="font-display text-2xl">{DAYS[idx]}</div>
+                    <div className="text-sm uppercase">
+                      {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </div>
+                    {isToday && <div className="text-xs mt-1 font-bold">TODAY</div>}
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Meal Rows */}
+            {MEAL_TYPES.map(mealType => (
+              <div key={mealType} className="grid grid-cols-8 gap-2 mb-2">
+                {/* Meal Type Label */}
+                <div 
+                  className="p-4 border-brutal font-bold uppercase flex items-center justify-center gap-2"
+                  style={{ backgroundColor: MEAL_COLORS[mealType] }}
+                >
+                  <span className="text-xl">{MEAL_ICONS[mealType]}</span>
+                  <span className="font-display text-lg">{mealType}</span>
+                </div>
+                
+                {/* Day Slots */}
+                {weekDates.map((date, idx) => {
+                  const meal = getMealForSlot(date, mealType)
+                  const dateStr = formatDate(date)
+                  
+                  return (
+                    <div 
+                      key={idx} 
+                      className="border-brutal bg-white min-h-[120px] p-2 relative group"
+                    >
+                      {meal ? (
+                        <div className="h-full">
+                          <div className="text-xs font-bold uppercase line-clamp-2 mb-1">
+                            {meal.recipe_title}
+                          </div>
+                          {meal.recipe_image && (
+                            <img 
+                              src={meal.recipe_image} 
+                              alt={meal.recipe_title}
+                              className="w-full h-16 object-cover border-2 border-black"
+                            />
+                          )}
+                          <button
+                            onClick={() => deleteMealPlan(meal.id)}
+                            className="absolute top-1 right-1 bg-[#FF3366] text-white w-6 h-6 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity border-2 border-black"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setShowRecipeSelector({ date: dateStr, mealType })}
+                          className="w-full h-full flex items-center justify-center text-gray-400 hover:text-black hover:bg-gray-100 transition-colors text-2xl"
+                        >
+                          +
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="mt-8 flex flex-wrap gap-4 justify-center">
+          {MEAL_TYPES.map(type => (
+            <div key={type} className="flex items-center gap-2">
+              <div 
+                className="w-6 h-6 border-2 border-black"
+                style={{ backgroundColor: MEAL_COLORS[type] }}
+              ></div>
+              <span className="uppercase text-sm font-bold">{type}</span>
+            </div>
+          ))}
+        </div>
+      </main>
+
       {/* Recipe Selector Modal */}
       {showRecipeSelector && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4">Select a Recipe</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="card-brutal bg-white p-6 max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="bg-black text-[#FFE500] px-3 py-1 font-display text-xl">
+                  SELECT
+                </div>
+                <div className="bg-[#00FF88] text-black px-3 py-1 font-display text-xl">
+                  RECIPE
+                </div>
+              </div>
+              <button
+                onClick={() => setShowRecipeSelector(null)}
+                className="btn-brutal px-4 py-2 bg-[#FF3366] text-white"
+              >
+                ✕ CLOSE
+              </button>
+            </div>
+            
+            <div className="mb-4 p-3 bg-gray-100 border-brutal">
+              <span className="uppercase font-bold">
+                {showRecipeSelector.mealType} on {new Date(showRecipeSelector.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+              </span>
+            </div>
+
             {savedRecipes.length === 0 ? (
-              <p className="text-gray-600">No saved recipes. Save some recipes first!</p>
+              <div className="text-center py-8">
+                <div className="font-display text-2xl mb-4">NO SAVED RECIPES</div>
+                <p className="uppercase text-gray-600 mb-4">Save some recipes first!</p>
+                <button
+                  onClick={() => {
+                    setShowRecipeSelector(null)
+                    navigate({ to: '/' })
+                  }}
+                  className="btn-brutal px-6 py-3 bg-[#00FF88] text-black"
+                >
+                  FIND RECIPES →
+                </button>
+              </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4">
-                {savedRecipes.map(recipe => (
+              <div className="grid grid-cols-2 gap-4 overflow-y-auto flex-1 pr-2">
+                {savedRecipes.map((recipe, index) => (
                   <button
                     key={recipe.id}
                     onClick={() => addMealPlan(recipe.id, showRecipeSelector.date, showRecipeSelector.mealType)}
-                    className="text-left p-3 border rounded-lg hover:bg-gray-50"
+                    className="card-brutal text-left p-3 hover:bg-gray-50 transition-colors animate-slideUp"
+                    style={{ animationDelay: `${index * 0.03}s` }}
                   >
-                    <img src={recipe.image_url} alt={recipe.title} className="w-full h-24 object-cover rounded mb-2" />
-                    <div className="font-medium text-sm">{recipe.title}</div>
+                    {recipe.image_url && (
+                      <img 
+                        src={recipe.image_url} 
+                        alt={recipe.title} 
+                        className="w-full h-24 object-cover border-2 border-black mb-2"
+                      />
+                    )}
+                    <div className="font-bold text-sm uppercase line-clamp-2">{recipe.title}</div>
                   </button>
                 ))}
               </div>
             )}
-            <button
-              onClick={() => setShowRecipeSelector(null)}
-              className="mt-4 px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 w-full"
-            >
-              Cancel
-            </button>
           </div>
         </div>
       )}

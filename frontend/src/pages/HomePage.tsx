@@ -12,51 +12,77 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">🍳 MealMaster</h1>
-            <p className="text-gray-600 mt-1">
-              Your personal recipe and meal planning assistant
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            {isAuthenticated && user ? (
-              <>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
-                </div>
+    <div className="min-h-screen bg-[#F5F0E8] relative noise-overlay">
+      {/* Brutalist Header */}
+      <header className="bg-black text-white border-b-4 border-black sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
+            {/* Logo */}
+            <div className="flex items-center gap-4">
+              <div className="bg-[#FFE500] text-black px-3 py-2 border-brutal text-4xl font-bold rotate-neg-2">
+                🍳
+              </div>
+              <div>
+                <h1 className="font-display text-4xl tracking-wider">
+                  MEALMASTER
+                </h1>
+                <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                  Plan • Cook • Enjoy
+                </p>
+              </div>
+            </div>
+
+            {/* Navigation */}
+            <nav className="flex items-center gap-3">
+              {isAuthenticated && user ? (
+                <>
+                  <div className="text-right hidden md:block mr-4">
+                    <p className="text-sm font-bold uppercase">{user.name}</p>
+                    <p className="text-xs text-gray-400">{user.email}</p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="btn-brutal px-4 py-2 bg-[#FF3366] text-white"
+                  >
+                    EXIT
+                  </button>
+                </>
+              ) : (
                 <button
-                  onClick={handleLogout}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  onClick={() => navigate('/auth')}
+                  className="btn-brutal px-6 py-2 bg-[#FFE500] text-black"
                 >
-                  Logout
+                  LOGIN →
                 </button>
-              </>
-            ) : (
-              <button
-                onClick={() => navigate('/auth')}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Login
-              </button>
-            )}
+              )}
+            </nav>
           </div>
         </div>
       </header>
 
+      {/* Marquee Banner */}
+      <div className="bg-[#FFE500] border-b-4 border-black overflow-hidden py-2">
+        <div className="animate-marquee whitespace-nowrap">
+          <span className="font-display text-2xl tracking-wider mx-8">
+            ★ DISCOVER RECIPES ★ PLAN YOUR MEALS ★ EAT BETTER ★ COOK SMARTER ★ DISCOVER RECIPES ★ PLAN YOUR MEALS ★ EAT BETTER ★ COOK SMARTER ★
+          </span>
+          <span className="font-display text-2xl tracking-wider mx-8">
+            ★ DISCOVER RECIPES ★ PLAN YOUR MEALS ★ EAT BETTER ★ COOK SMARTER ★ DISCOVER RECIPES ★ PLAN YOUR MEALS ★ EAT BETTER ★ COOK SMARTER ★
+          </span>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto px-4 py-8">
         <RecipeSearch />
       </main>
 
       {/* Footer */}
-      <footer className="bg-white mt-12 border-t">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 text-center text-gray-500">
-          <p>MealMaster - Built with React & FastAPI</p>
+      <footer className="bg-black text-white border-t-4 border-black mt-16">
+        <div className="max-w-7xl mx-auto px-4 py-8 text-center">
+          <p className="uppercase text-sm text-gray-400">
+            MealMaster — Built with React & FastAPI
+          </p>
         </div>
       </footer>
     </div>
