@@ -76,76 +76,64 @@ function App() {
         </div>
       </header>
 
-      {/* Marquee Banner */}
-      <div className="bg-[#FFE500] border-b-4 border-black overflow-hidden py-2">
-        <div className="animate-marquee whitespace-nowrap">
-          <span className="font-display text-2xl tracking-wider mx-8">
-            ★ DISCOVER RECIPES ★ PLAN YOUR MEALS ★ EAT BETTER ★ COOK SMARTER ★ DISCOVER RECIPES ★ PLAN YOUR MEALS ★ EAT BETTER ★ COOK SMARTER ★
-          </span>
-          <span className="font-display text-2xl tracking-wider mx-8">
-            ★ DISCOVER RECIPES ★ PLAN YOUR MEALS ★ EAT BETTER ★ COOK SMARTER ★ DISCOVER RECIPES ★ PLAN YOUR MEALS ★ EAT BETTER ★ COOK SMARTER ★
-          </span>
+      {/* Hero Banner - Search Focus */}
+      <div className="bg-black text-white py-8 md:py-12 border-b-4 border-black">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="font-display text-4xl md:text-6xl lg:text-7xl tracking-wider mb-4">
+            FIND YOUR NEXT
+            <span className="block bg-[#FFE500] text-black px-4 py-2 mt-2 inline-block">FAVORITE RECIPE</span>
+          </h2>
+          <p className="text-lg md:text-xl uppercase text-gray-300 max-w-2xl mx-auto mt-4">
+            Search thousands of recipes, save your favorites, and plan your meals
+          </p>
         </div>
       </div>
 
-      {/* Hero Section */}
+      {/* Main Content - Search is the star */}
+      <main className="mx-auto px-4 md:px-6 lg:px-12 py-8" style={{ maxWidth: '1600px' }}>
+        <RecipeSearch />
+      </main>
+
+      {/* Features Section - Only show for non-authenticated users */}
       {!isAuthenticated && (
-        <div className="relative py-16 px-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-              {/* Left side - broken grid text */}
-              <div className="space-y-6">
-                <div className="inline-block bg-black text-white px-4 py-2 rotate-neg-1 border-brutal">
-                  <span className="font-display text-6xl md:text-8xl tracking-wider">
-                    DISCOVER
-                  </span>
-                </div>
-                <div className="inline-block bg-[#FF3366] text-white px-4 py-2 rotate-1 border-brutal ml-8">
-                  <span className="font-display text-6xl md:text-8xl tracking-wider">
-                    YOUR NEXT
-                  </span>
-                </div>
-                <div className="inline-block bg-[#00D4FF] text-black px-4 py-2 rotate-neg-2 border-brutal">
-                  <span className="font-display text-6xl md:text-8xl tracking-wider">
-                    FAVORITE
-                  </span>
-                </div>
-                <div className="inline-block bg-[#FFE500] text-black px-4 py-2 rotate-1 border-brutal ml-12">
-                  <span className="font-display text-6xl md:text-8xl tracking-wider">
-                    MEAL
-                  </span>
-                </div>
+        <div className="bg-white border-t-4 border-b-4 border-black py-12">
+          <div className="max-w-5xl mx-auto px-4">
+            <div className="text-center mb-8">
+              <div className="inline-block bg-black text-white px-4 py-2 font-display text-2xl">
+                WHY MEALMASTER?
               </div>
-              
-              {/* Right side - CTA box */}
-              <div className="card-brutal p-8 bg-white rotate-1">
-                <p className="text-lg mb-6 uppercase">
-                  Search thousands of recipes, plan your meals, and create shopping lists — all in one place.
-                </p>
-                <button
-                  onClick={() => navigate({ to: '/auth' })}
-                  className="btn-brutal w-full py-4 bg-[#00FF88] text-black text-xl font-display tracking-wider"
-                >
-                  GET STARTED FREE →
-                </button>
-                <div className="mt-4 flex gap-4 text-sm uppercase">
-                  <span className="bg-black text-white px-2 py-1">✓ Free</span>
-                  <span className="bg-black text-white px-2 py-1">✓ No Ads</span>
-                  <span className="bg-black text-white px-2 py-1">✓ Unlimited</span>
-                </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="border-4 border-black p-6 bg-[#FFE500]">
+                <div className="text-4xl mb-4">🔍</div>
+                <h3 className="font-display text-xl mb-2">SEARCH RECIPES</h3>
+                <p className="text-sm uppercase">Find recipes from a massive database. Filter by ingredients, cuisine, or diet.</p>
               </div>
+              <div className="border-4 border-black p-6 bg-[#00FF88]">
+                <div className="text-4xl mb-4">❤️</div>
+                <h3 className="font-display text-xl mb-2">SAVE FAVORITES</h3>
+                <p className="text-sm uppercase">Build your personal cookbook. Access your saved recipes anytime.</p>
+              </div>
+              <div className="border-4 border-black p-6 bg-[#00D4FF]">
+                <div className="text-4xl mb-4">📅</div>
+                <h3 className="font-display text-xl mb-2">PLAN MEALS</h3>
+                <p className="text-sm uppercase">Organize your week with our meal planner. Never wonder "what's for dinner?"</p>
+              </div>
+            </div>
+            <div className="text-center mt-8">
+              <button
+                onClick={() => navigate({ to: '/auth' })}
+                className="btn-brutal px-8 py-4 bg-[#FF3366] text-white text-xl font-display tracking-wider"
+              >
+                CREATE FREE ACCOUNT →
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Main Content */}
-      <main className="mx-auto px-6 lg:px-12 py-8" style={{ maxWidth: '1600px' }}>
-        <RecipeSearch />
-      </main>
-
       {/* Footer */}
-      <footer className="bg-black text-white border-t-4 border-black mt-16">
+      <footer className="bg-black text-white border-t-4 border-black mt-8">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
@@ -155,8 +143,8 @@ function App() {
               </p>
             </div>
             <div>
-              <h4 className="font-bold uppercase mb-4 text-[#FFE500]">Stack</h4>
-              <ul className="space-y-2 text-sm">
+              <h4 className="font-bold uppercase mb-4 text-white border-b-2 border-[#FFE500] pb-1 inline-block">Stack</h4>
+              <ul className="space-y-2 text-sm text-gray-300">
                 <li>→ React + TypeScript</li>
                 <li>→ TanStack Router</li>
                 <li>→ Tailwind CSS</li>
@@ -164,8 +152,8 @@ function App() {
               </ul>
             </div>
             <div>
-              <h4 className="font-bold uppercase mb-4 text-[#00D4FF]">Features</h4>
-              <ul className="space-y-2 text-sm">
+              <h4 className="font-bold uppercase mb-4 text-white border-b-2 border-[#00D4FF] pb-1 inline-block">Features</h4>
+              <ul className="space-y-2 text-sm text-gray-300">
                 <li>→ Recipe Search</li>
                 <li>→ Meal Planning</li>
                 <li>→ Save Favorites</li>

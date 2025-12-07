@@ -21,6 +21,107 @@ interface Toast {
   type: 'success' | 'error' | 'warning'
 }
 
+interface RecipeCardProps {
+  recipe: SavedRecipe
+  index: number
+  rotations: string[]
+  accents: string[]
+  onToggleFavorite: (id: number, title: string) => void
+  onDelete: (id: number, title: string) => void
+}
+
+function RecipeCard({ recipe, index, rotations, accents, onToggleFavorite, onDelete }: RecipeCardProps) {
+  const [isHovered, setIsHovered] = useState(false)
+  
+  const rotation = rotations[index % rotations.length]
+  const accent = accents[index % accents.length]
+
+  return (
+    <div 
+      className={`bg-white overflow-hidden ${rotation} animate-slideUp flex flex-col border-4 border-black transition-all duration-300`}
+      style={{ 
+        animationDelay: `${index * 0.03}s`,
+        boxShadow: isHovered ? '12px 12px 0px #000' : '8px 8px 0px #000',
+        maxWidth: '100%',
+        position: 'relative',
+        zIndex: isHovered ? 20 : 1,
+        transform: isHovered ? 'translateY(-8px) scale(1.02)' : undefined
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Image */}
+      {recipe.image_url && (
+        <div className="relative overflow-hidden border-b-4 border-black" style={{ aspectRatio: '4/3' }}>
+          <img
+            src={recipe.image_url}
+            alt={recipe.title}
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+            style={{ display: 'block' }}
+          />
+          {/* Index Badge */}
+          <div 
+            className="absolute top-2 right-2 px-2 py-0.5 font-display text-sm md:text-base border-2 border-black"
+            style={{ backgroundColor: accent }}
+          >
+            #{index + 1}
+          </div>
+          {/* Favorite Badge */}
+          {recipe.is_favorite && (
+            <div className="absolute top-2 left-2 bg-[#FFE500] text-black px-2 py-0.5 font-bold text-xs uppercase border-2 border-black">
+              ★ FAV
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Content */}
+      <div className="p-3 md:p-4 flex flex-col flex-1">
+        <h3 className="font-bold text-sm md:text-base uppercase mb-2 md:mb-3 line-clamp-2 leading-tight flex-shrink-0">
+          {recipe.title}
+        </h3>
+        
+        {/* Meta Info */}
+        <div className="flex flex-wrap gap-1.5 md:gap-2 mb-3 flex-shrink-0">
+          {recipe.ready_in_minutes && (
+            <div className="bg-black text-white px-2 py-0.5 text-xs uppercase">
+              ⏱ {recipe.ready_in_minutes}MIN
+            </div>
+          )}
+          {recipe.servings && (
+            <div className="bg-black text-white px-2 py-0.5 text-xs uppercase">
+              🍽 {recipe.servings}PPL
+            </div>
+          )}
+        </div>
+
+        {/* Spacer to push buttons to bottom */}
+        <div className="flex-1"></div>
+
+        {/* Actions */}
+        <div className="flex gap-2 flex-shrink-0">
+          <button
+            onClick={() => onToggleFavorite(recipe.id, recipe.title)}
+            className={`btn-brutal flex-1 py-2 md:py-3 uppercase font-bold text-xs md:text-sm transition-all duration-150 ${
+              recipe.is_favorite 
+                ? 'bg-[#FFE500] text-black' 
+                : 'bg-white text-black hover:bg-[#FFE500]'
+            }`}
+          >
+            {recipe.is_favorite ? '★ FAVORITED' : '☆ FAVORITE'}
+          </button>
+          <button
+            onClick={() => onDelete(recipe.id, recipe.title)}
+            className="btn-brutal px-3 md:px-4 py-2 md:py-3 bg-[#FF3366] text-white hover:bg-red-700 transition-colors"
+          >
+            🗑
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function SavedRecipesPage() {
   const [recipes, setRecipes] = useState<SavedRecipe[]>([])
   const [loading, setLoading] = useState(true)
@@ -142,14 +243,14 @@ export default function SavedRecipesPage() {
   return (
     <div className="min-h-screen bg-[#F5F0E8] relative noise-overlay">
       {/* Header */}
-      <header className="bg-black text-white border-b-4 border-black">
+      <header className="bg-black text-white border-b-4 border-black sticky top-0" style={{ zIndex: 50 }}>
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex items-center gap-4">
-              <div className="bg-[#FF3366] text-white px-4 py-2 border-brutal rotate-neg-2">
+              <div className="bg-[#FF3366] text-white px-4 py-2 border-brutal rotate-neg-2" style={{ zIndex: 2 }}>
                 <span className="font-display text-2xl md:text-4xl tracking-wider">❤️ SAVED</span>
               </div>
-              <div className="bg-[#FFE500] text-black px-4 py-2 border-brutal rotate-1">
+              <div className="bg-[#FFE500] text-black px-4 py-2 border-brutal rotate-1" style={{ zIndex: 1 }}>
                 <span className="font-display text-2xl md:text-4xl tracking-wider">RECIPES</span>
               </div>
             </div>
@@ -166,10 +267,11 @@ export default function SavedRecipesPage() {
       {/* Stats Bar */}
       <div className="bg-[#00D4FF] border-b-4 border-black py-4">
         <div className="max-w-7xl mx-auto px-4 flex flex-wrap gap-4 items-center justify-between">
-          <div className="flex gap-4">
+          <div className="flex items-center gap-4">
             <div className="bg-black text-white px-4 py-2 uppercase font-bold text-sm md:text-base">
               Total: {recipes.length}
             </div>
+            <span className="text-black font-bold text-xl">|</span>
             <div className="bg-black text-[#FFE500] px-4 py-2 uppercase font-bold text-sm md:text-base">
               Favorites: {recipes.filter(r => r.is_favorite).length}
             </div>
@@ -233,102 +335,26 @@ export default function SavedRecipesPage() {
             </div>
 
             {/* Responsive Grid - Matches RecipeSearch */}
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: '1.5rem'
-            }}>
-              {filteredRecipes.map((recipe, index) => {
-                const rotation = rotations[index % rotations.length]
-                const accent = accents[index % accents.length]
-                
-                return (
-                  <div 
-                    key={recipe.id} 
-                    className={`bg-white overflow-hidden ${rotation} animate-slideUp flex flex-col border-4 border-black transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02]`}
-                    style={{ 
-                      animationDelay: `${index * 0.03}s`,
-                      boxShadow: '8px 8px 0px #000',
-                      maxWidth: '100%'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow = '12px 12px 0px #000'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.boxShadow = '8px 8px 0px #000'
-                    }}
-                  >
-                    {/* Image */}
-                    {recipe.image_url && (
-                      <div className="relative overflow-hidden border-b-4 border-black" style={{ aspectRatio: '4/3' }}>
-                        <img
-                          src={recipe.image_url}
-                          alt={recipe.title}
-                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                          style={{ display: 'block' }}
-                        />
-                        {/* Index Badge */}
-                        <div 
-                          className="absolute top-2 right-2 px-2 py-0.5 font-display text-sm md:text-base"
-                          style={{ backgroundColor: accent }}
-                        >
-                          #{index + 1}
-                        </div>
-                        {/* Favorite Badge */}
-                        {recipe.is_favorite && (
-                          <div className="absolute top-2 left-2 bg-[#FFE500] text-black px-2 py-0.5 font-bold text-xs uppercase border-2 border-black">
-                            ★ FAV
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    
-                    {/* Content */}
-                    <div className="p-3 md:p-4 flex flex-col flex-1">
-                      <h3 className="font-bold text-sm md:text-base uppercase mb-2 md:mb-3 line-clamp-2 leading-tight flex-shrink-0">
-                        {recipe.title}
-                      </h3>
-                      
-                      {/* Meta Info */}
-                      <div className="flex flex-wrap gap-1.5 md:gap-2 mb-3 flex-shrink-0">
-                        {recipe.ready_in_minutes && (
-                          <div className="bg-black text-white px-2 py-0.5 text-xs uppercase">
-                            ⏱ {recipe.ready_in_minutes}MIN
-                          </div>
-                        )}
-                        {recipe.servings && (
-                          <div className="bg-black text-white px-2 py-0.5 text-xs uppercase">
-                            🍽 {recipe.servings}PPL
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Spacer to push buttons to bottom */}
-                      <div className="flex-1"></div>
-
-                      {/* Actions */}
-                      <div className="flex gap-2 flex-shrink-0">
-                        <button
-                          onClick={() => handleToggleFavorite(recipe.id, recipe.title)}
-                          className={`btn-brutal flex-1 py-2 md:py-3 uppercase font-bold text-xs md:text-sm transition-all duration-150 ${
-                            recipe.is_favorite 
-                              ? 'bg-[#FFE500] text-black' 
-                              : 'bg-white text-black hover:bg-[#FFE500]'
-                          }`}
-                        >
-                          {recipe.is_favorite ? '★ FAVORITED' : '☆ FAVORITE'}
-                        </button>
-                        <button
-                          onClick={() => handleDelete(recipe.id, recipe.title)}
-                          className="btn-brutal px-3 md:px-4 py-2 md:py-3 bg-[#FF3366] text-white hover:bg-red-700 transition-colors"
-                        >
-                          🗑
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
+            <div 
+              className="card-grid-wrapper"
+              style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gap: '2rem',
+                padding: '0.5rem'
+              }}
+            >
+              {filteredRecipes.map((recipe, index) => (
+                <RecipeCard
+                  key={recipe.id}
+                  recipe={recipe}
+                  index={index}
+                  rotations={rotations}
+                  accents={accents}
+                  onToggleFavorite={handleToggleFavorite}
+                  onDelete={handleDelete}
+                />
+              ))}
             </div>
           </>
         )}

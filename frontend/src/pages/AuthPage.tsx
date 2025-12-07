@@ -36,13 +36,13 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-[#F5F0E8] relative noise-overlay flex items-center justify-center px-4 py-12">
-      {/* Background decorative elements */}
-      <div className="absolute top-20 left-10 bg-[#FFE500] w-32 h-32 border-brutal rotate-12 hidden lg:block"></div>
-      <div className="absolute bottom-20 right-10 bg-[#00D4FF] w-24 h-24 border-brutal rotate-neg-12 hidden lg:block"></div>
-      <div className="absolute top-40 right-20 bg-[#FF3366] w-16 h-16 border-brutal rotate-6 hidden lg:block"></div>
-      <div className="absolute bottom-40 left-20 bg-[#00FF88] w-20 h-20 border-brutal rotate-neg-6 hidden lg:block"></div>
+      {/* Background decorative elements - behind everything */}
+      <div className="absolute top-20 left-10 bg-[#FFE500] w-32 h-32 border-brutal rotate-12 hidden lg:block" style={{ zIndex: 0 }}></div>
+      <div className="absolute bottom-20 right-10 bg-[#00D4FF] w-24 h-24 border-brutal rotate-neg-12 hidden lg:block" style={{ zIndex: 0 }}></div>
+      <div className="absolute top-40 right-20 bg-[#FF3366] w-16 h-16 border-brutal rotate-6 hidden lg:block" style={{ zIndex: 0 }}></div>
+      <div className="absolute bottom-40 left-20 bg-[#00FF88] w-20 h-20 border-brutal rotate-neg-6 hidden lg:block" style={{ zIndex: 0 }}></div>
 
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-md" style={{ position: 'relative', zIndex: 10 }}>
         {/* Header */}
         <div className="text-center mb-8">
           <div 
@@ -111,7 +111,7 @@ export default function AuthPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="input-brutal w-full px-4 py-3 uppercase placeholder:text-gray-400"
+                className="input-brutal w-full px-4 py-3 uppercase placeholder:text-gray-500"
                 placeholder="YOUR@EMAIL.COM"
               />
             </div>
@@ -127,7 +127,7 @@ export default function AuthPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="input-brutal w-full px-4 py-3 uppercase placeholder:text-gray-400"
+                  className="input-brutal w-full px-4 py-3 uppercase placeholder:text-gray-500"
                   placeholder="JOHN DOE"
                 />
               </div>
@@ -143,7 +143,7 @@ export default function AuthPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="input-brutal w-full px-4 py-3 uppercase placeholder:text-gray-400"
+                className="input-brutal w-full px-4 py-3 uppercase placeholder:text-gray-500"
                 placeholder="••••••••"
               />
             </div>
@@ -152,7 +152,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-brutal w-full py-4 bg-[#00FF88] text-black font-display text-2xl tracking-wider disabled:bg-gray-300 disabled:cursor-not-allowed mt-6"
+              className="btn-brutal w-full py-4 bg-[#00FF88] text-black font-display text-2xl tracking-wider disabled:bg-gray-400 disabled:text-gray-700 disabled:cursor-not-allowed mt-6"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
