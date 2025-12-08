@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from '@tanstack/react-router'
 import { useAuth } from '../context/AuthContext.tsx'
+import RecipeDetailModal from '../components/RecipeDetailModal.tsx'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 interface SavedRecipe {
   id: number
+  external_id: number
   title: string
   image_url: string
 }
@@ -19,6 +21,7 @@ interface MealPlan {
   servings: number
   recipe_title: string
   recipe_image: string
+  external_id?: number
 }
 
 interface Toast {
@@ -57,6 +60,8 @@ export default function MealPlannerPage() {
   const [deleteConfirmation, setDeleteConfirmation] = useState<DeleteConfirmation | null>(null)
   const [toasts, setToasts] = useState<Toast[]>([])
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [selectedRecipeId, setSelectedRecipeId] = useState<number | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   
   const { token, isAuthenticated } = useAuth()
   const navigate = useNavigate()
@@ -177,6 +182,20 @@ export default function MealPlannerPage() {
       mealPlan: meal,
       dayName: DAYS_FULL[dayIndex]
     })
+  }
+
+  const handleViewRecipeDetails = (meal: MealPlan) => {
+    // Find the saved recipe to get the external_id
+    const savedRecipe = savedRecipes.find(r => r.id === meal.saved_recipe_id)
+    if (savedRecipe?.external_id) {
+      setSelectedRecipeId(savedRecipe.external_id)
+      setIsModalOpen(true)
+    }
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedRecipeId(null)
   }
 
   const confirmDelete = async () => {
@@ -333,7 +352,10 @@ export default function MealPlannerPage() {
                         <>
                           {/* Delete button - top right corner of cell */}
                           <button
-                            onClick={() => handleDeleteClick(meal)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDeleteClick(meal)
+                            }}
                             className="bg-[#FF3366] text-white w-6 h-6 rounded-full text-xs font-bold 
                                      border-2 border-black shadow-md
                                      opacity-0 group-hover:opacity-100 
@@ -351,7 +373,11 @@ export default function MealPlannerPage() {
                             ✕
                           </button>
                           
-                          <div className="h-full flex flex-col">
+                          {/* Clickable meal content */}
+                          <div 
+                            className="h-full flex flex-col cursor-pointer"
+                            onClick={() => handleViewRecipeDetails(meal)}
+                          >
                             {/* Meal Image */}
                             {meal.recipe_image && (
                               <img 
@@ -364,6 +390,10 @@ export default function MealPlannerPage() {
                             <div className="p-2 flex-1 flex flex-col">
                               <div className="text-xs font-bold uppercase line-clamp-2 leading-tight pr-5">
                                 {meal.recipe_title}
+                              </div>
+                              {/* View hint on hover */}
+                              <div className="text-[10px] text-gray-400 uppercase mt-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                                Click to view →
                               </div>
                             </div>
                           </div>
@@ -401,147 +431,209 @@ export default function MealPlannerPage() {
       </main>
 
       {/* Recipe Selector Modal */}
-      {showRecipeSelector && (
+      {showRecipeSelector && createPortal(
         <div 
-          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4"
-          style={{ zIndex: 100 }}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            zIndex: 999998,
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            padding: '16px',
+            overflowY: 'auto'
+          }}
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowRecipeSelector(null)
           }}
         >
           <div 
-            className="bg-white border-4 border-black p-6 max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col"
-            style={{ boxShadow: '8px 8px 0px #000' }}
+            style={{
+              backgroundColor: 'white',
+              border: '4px solid black',
+              boxShadow: '8px 8px 0px #000',
+              width: '100%',
+              maxWidth: '600px',
+              marginTop: '40px',
+              marginBottom: '40px',
+              maxHeight: 'calc(100vh - 80px)',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="bg-black text-[#FFE500] px-3 py-1 font-display text-xl">
-                  SELECT
+            {/* Header */}
+            <div className="p-4 md:p-6 border-b-4 border-black flex-shrink-0">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="bg-black text-[#FFE500] px-3 py-1 font-display text-lg md:text-xl">
+                    SELECT
+                  </div>
+                  <div className="bg-[#00FF88] text-black px-3 py-1 font-display text-lg md:text-xl border-2 border-black">
+                    RECIPE
+                  </div>
                 </div>
-                <div className="bg-[#00FF88] text-black px-3 py-1 font-display text-xl border-2 border-black">
-                  RECIPE
-                </div>
-              </div>
-              <button
-                onClick={() => setShowRecipeSelector(null)}
-                className="btn-brutal px-4 py-2 bg-[#FF3366] text-white"
-              >
-                ✕ CLOSE
-              </button>
-            </div>
-            
-            <div className="mb-4 p-3 bg-gray-100 border-4 border-black">
-              <span className="uppercase font-bold">
-                {MEAL_ICONS[showRecipeSelector.mealType]} {showRecipeSelector.mealType} on {new Date(showRecipeSelector.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-              </span>
-            </div>
-
-            {savedRecipes.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="font-display text-2xl mb-4">NO SAVED RECIPES</div>
-                <p className="uppercase text-gray-600 mb-4">Save some recipes first!</p>
                 <button
-                  onClick={() => {
-                    setShowRecipeSelector(null)
-                    navigate({ to: '/' })
-                  }}
-                  className="btn-brutal px-6 py-3 bg-[#00FF88] text-black"
+                  onClick={() => setShowRecipeSelector(null)}
+                  className="bg-black text-white w-10 h-10 flex items-center justify-center text-lg font-bold hover:bg-[#FF3366] transition-colors"
                 >
-                  FIND RECIPES →
+                  ✕
                 </button>
               </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4 overflow-y-auto flex-1 pr-2">
-                {savedRecipes.map((recipe, index) => (
-                  <button
-                    key={recipe.id}
-                    onClick={() => addMealPlan(recipe.id, showRecipeSelector.date, showRecipeSelector.mealType)}
-                    className="border-4 border-black bg-white text-left p-3 hover:bg-[#00FF88] transition-all duration-200 animate-slideUp hover:-translate-y-1"
-                    style={{ 
-                      animationDelay: `${index * 0.03}s`,
-                      boxShadow: '4px 4px 0px #000'
-                    }}
-                  >
-                    {recipe.image_url && (
-                      <img 
-                        src={recipe.image_url} 
-                        alt={recipe.title} 
-                        className="w-full h-24 object-cover border-2 border-black mb-2"
-                      />
-                    )}
-                    <div className="font-bold text-sm uppercase line-clamp-2">{recipe.title}</div>
-                  </button>
-                ))}
+              
+              <div className="p-3 bg-gray-100 border-2 border-black">
+                <span className="uppercase font-bold text-sm">
+                  {MEAL_ICONS[showRecipeSelector.mealType]} {showRecipeSelector.mealType} on {new Date(showRecipeSelector.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                </span>
               </div>
-            )}
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-4 md:p-6">
+              {savedRecipes.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="font-display text-2xl mb-4">NO SAVED RECIPES</div>
+                  <p className="uppercase text-gray-600 mb-4">Save some recipes first!</p>
+                  <button
+                    onClick={() => {
+                      setShowRecipeSelector(null)
+                      navigate({ to: '/' })
+                    }}
+                    className="btn-brutal px-6 py-3 bg-[#00FF88] text-black"
+                  >
+                    FIND RECIPES →
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {savedRecipes.map((recipe, index) => (
+                    <button
+                      key={recipe.id}
+                      onClick={() => addMealPlan(recipe.id, showRecipeSelector.date, showRecipeSelector.mealType)}
+                      className="border-4 border-black bg-white text-left p-3 hover:bg-[#00FF88] transition-all duration-200 hover:-translate-y-1"
+                      style={{ 
+                        boxShadow: '4px 4px 0px #000'
+                      }}
+                    >
+                      {recipe.image_url && (
+                        <img 
+                          src={recipe.image_url} 
+                          alt={recipe.title} 
+                          className="w-full h-20 object-cover border-2 border-black mb-2"
+                        />
+                      )}
+                      <div className="font-bold text-xs md:text-sm uppercase line-clamp-2">{recipe.title}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Delete Confirmation Modal */}
-      {deleteConfirmation && (
+      {deleteConfirmation && createPortal(
         <div 
-          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4"
-          style={{ zIndex: 100 }}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            zIndex: 999998,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+            overflowY: 'auto'
+          }}
           onClick={(e) => {
             if (e.target === e.currentTarget) setDeleteConfirmation(null)
           }}
         >
           <div 
-            className="bg-white border-4 border-black p-6 max-w-md w-full animate-slideUp"
-            style={{ boxShadow: '8px 8px 0px #000' }}
+            style={{
+              backgroundColor: 'white',
+              border: '4px solid black',
+              boxShadow: '8px 8px 0px #000',
+              width: '100%',
+              maxWidth: '360px',
+              margin: 'auto'
+            }}
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-[#FF3366] text-white px-3 py-1 font-display text-xl">
-                REMOVE
-              </div>
-              <div className="bg-black text-white px-3 py-1 font-display text-xl">
-                MEAL?
+            <div className="p-4 border-b-4 border-black bg-[#FF3366]">
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-white font-display text-xl md:text-2xl">🗑 REMOVE MEAL?</span>
               </div>
             </div>
 
             {/* Meal Preview */}
-            <div className="border-4 border-black p-4 mb-6 bg-gray-50">
-              <div className="flex gap-4 items-center">
+            <div className="p-4">
+              <div className="border-4 border-black bg-gray-50 overflow-hidden">
+                {/* Small thumbnail */}
                 {deleteConfirmation.mealPlan.recipe_image && (
                   <img 
                     src={deleteConfirmation.mealPlan.recipe_image}
                     alt={deleteConfirmation.mealPlan.recipe_title}
-                    className="w-20 h-20 object-cover border-2 border-black flex-shrink-0"
+                    className="w-full h-32 object-cover border-b-4 border-black"
                   />
                 )}
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold uppercase text-sm line-clamp-2 mb-1">
+                {/* Recipe info */}
+                <div className="p-3">
+                  <div className="font-bold uppercase text-sm mb-2 leading-tight">
                     {deleteConfirmation.mealPlan.recipe_title}
                   </div>
-                  <div className="text-xs uppercase text-gray-600">
-                    {MEAL_ICONS[deleteConfirmation.mealPlan.meal_type]} {deleteConfirmation.mealPlan.meal_type} • {deleteConfirmation.dayName}
+                  <div className="flex items-center gap-2 text-xs uppercase text-gray-600">
+                    <span 
+                      className="px-2 py-1 border-2 border-black font-bold"
+                      style={{ backgroundColor: MEAL_COLORS[deleteConfirmation.mealPlan.meal_type] }}
+                    >
+                      {MEAL_ICONS[deleteConfirmation.mealPlan.meal_type]} {deleteConfirmation.mealPlan.meal_type}
+                    </span>
+                    <span>•</span>
+                    <span className="font-bold">{deleteConfirmation.dayName}</span>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Actions */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setDeleteConfirmation(null)}
-                className="btn-brutal flex-1 py-3 bg-white text-black hover:bg-gray-100"
-                disabled={deletingId !== null}
-              >
-                CANCEL
-              </button>
-              <button
-                onClick={confirmDelete}
-                disabled={deletingId !== null}
-                className="btn-brutal flex-1 py-3 bg-[#FF3366] text-white hover:bg-red-700 disabled:opacity-50"
-              >
-                {deletingId ? '◐ REMOVING...' : '🗑 REMOVE'}
-              </button>
+              {/* Actions */}
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => setDeleteConfirmation(null)}
+                  className="btn-brutal flex-1 py-3 bg-white text-black hover:bg-gray-100 text-sm font-bold"
+                  disabled={deletingId !== null}
+                >
+                  CANCEL
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={deletingId !== null}
+                  className="btn-brutal flex-1 py-3 bg-[#FF3366] text-white hover:bg-red-700 disabled:opacity-50 text-sm font-bold"
+                >
+                  {deletingId ? '◐ ...' : '🗑 REMOVE'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
+
+      {/* Recipe Detail Modal */}
+      <RecipeDetailModal
+        recipeId={selectedRecipeId}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
 
       {/* Toast Notifications */}
       {toasts.length > 0 && createPortal(
