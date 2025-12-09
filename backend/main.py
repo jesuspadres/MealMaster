@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
+from app.api.ai_assistant import router as ai_router
+
 
 # Load environment variables
 load_dotenv()
@@ -11,6 +13,9 @@ app = FastAPI(
     description="Recipe and Meal Planning API",
     version="1.0.0"
 )
+
+# Initialize AI routes with dependencies
+app.include_router(ai_router, tags=["AI Assistant"])
 
 # Configure CORS
 app.add_middleware(

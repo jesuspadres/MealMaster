@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import RecipeSearch from './components/RecipeSearch.tsx'
+import AIChat from './components/AIChat.tsx'
 import { useAuth } from './context/AuthContext.tsx'
 
 function App() {
   const { user, logout, isAuthenticated } = useAuth()
   const navigate = useNavigate()
+  const [showAIChat, setShowAIChat] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -156,8 +159,8 @@ function App() {
               <ul className="space-y-2 text-sm text-gray-300">
                 <li>→ Recipe Search</li>
                 <li>→ Meal Planning</li>
+                <li>→ AI Assistant</li>
                 <li>→ Save Favorites</li>
-                <li>→ Shopping Lists</li>
               </ul>
             </div>
           </div>
@@ -166,6 +169,23 @@ function App() {
           </div>
         </div>
       </footer>
+
+      {/* AI Chat Floating Button */}
+      {isAuthenticated && (
+        <button
+          onClick={() => setShowAIChat(true)}
+          className="fixed bottom-6 right-6 w-16 h-16 bg-[#FF3366] text-white rounded-full border-4 border-black flex items-center justify-center text-2xl hover:scale-110 transition-transform z-50 group"
+          style={{ boxShadow: '6px 6px 0px #000' }}
+          title="Chat with AI Assistant"
+        >
+          <span className="group-hover:scale-110 transition-transform">🤖</span>
+          {/* Pulse animation */}
+          <span className="absolute inset-0 rounded-full border-4 border-[#FF3366] animate-ping opacity-20"></span>
+        </button>
+      )}
+
+      {/* AI Chat Modal */}
+      <AIChat isOpen={showAIChat} onClose={() => setShowAIChat(false)} />
     </div>
   )
 }
