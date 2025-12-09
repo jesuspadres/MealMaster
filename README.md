@@ -240,7 +240,7 @@ This project is open source and available under the [MIT License](LICENSE).
 ## 👤 Author
 
 **Jesus Padres**
-- Portfolio: jesuspadres.com
+- Portfolio: [JesusPadres.com](https://jesuspadres.com)
 - LinkedIn: [linkedin.com/in/jesus-padres](https://linkedin.com/in/jesus-padres)
 - Email: jesuspadres@gmail.com
 
